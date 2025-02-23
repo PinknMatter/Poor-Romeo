@@ -1,0 +1,14 @@
+{
+  "name": "message-visualizer",
+  "version": "1.0.0",
+  "description": "Message visualization in Electron",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron ."
+  },
+  "dependencies": {
+    "electron": "^28.1.0",
+    "electron-reload": "^2.0.0-alpha.1"
+  }
+}

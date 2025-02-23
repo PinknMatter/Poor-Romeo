@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Message Visualizer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #fff;
+            font-family: Arial, sans-serif;
+        }
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <script>
+        const { ipcRenderer } = require('electron');
+        
+        // Listen for control updates
+        ipcRenderer.on('update-text-size', (event, size) => {
+            window.currentTextSize = size;
+        });
+
+        ipcRenderer.on('update-max-highlights', (event, value) => {
+            window.maxHighlights = value;
+        });
+
+        ipcRenderer.on('update-highlight-duration', (event, value) => {
+            window.highlightDuration = value;
+        });
+
+        ipcRenderer.on('update-max-messages', (event, value) => {
+            window.maxMessages = value;
+        });
+
+        ipcRenderer.on('update-message-lifetime', (event, value) => {
+            window.messageLifetime = value;
+        });
+
+        ipcRenderer.on('update-birth-rate', (event, value) => {
+            window.messageInterval = value;
+        });
+
+        ipcRenderer.on('randomize-positions', () => {
+            if (messageManager) {
+                messageManager.randomizePositions();
+            }
+        });
+
+        // Set initial values
+        window.maxHighlights = 3;
+        window.highlightDuration = 3000;
+        window.maxMessages = 15;
+        window.messageLifetime = 10000;
+        window.messageInterval = 1000;
+    </script>
+    <script src="textClass.js"></script>
+    <script src="messageManager.js"></script>
+    <script src="sketch.js"></script>
+</body>
+</html>

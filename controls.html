@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Message Visualizer Controls</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+            color: #333;
+        }
+        .control-panel {
+            display: grid;
+            gap: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .control-section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .control-section h3 {
+            margin-top: 0;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #eee;
+            color: #444;
+            font-size: 16px;
+        }
+        .control-group {
+            margin-bottom: 20px;
+        }
+        .control-group:last-child {
+            margin-bottom: 0;
+        }
+        .control-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #444;
+            font-size: 14px;
+        }
+        .control-group input[type="range"] {
+            width: 100%;
+            margin-bottom: 8px;
+        }
+        .value-display {
+            font-size: 14px;
+            color: #666;
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background: #36, 46, 173;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .button:hover {
+            background: rgb(46, 56, 183);
+        }
+    </style>
+</head>
+<body>
+    <h2>Visualization Controls</h2>
+    <div class="control-panel">
+        <div class="control-section">
+            <h3>Text Appearance</h3>
+            <div class="control-group">
+                <label for="textSize">Font Size</label>
+                <input type="range" id="textSize" min="8" max="50" value="23" step="1">
+                <div class="value-display">Size: <span id="textSizeValue">23px</span></div>
+            </div>
+        </div>
+
+        <div class="control-section">
+            <h3>Message Timing</h3>
+            <div class="control-group">
+                <label for="messageLifetime">Message Lifetime</label>
+                <input type="range" id="messageLifetime" min="3" max="20" value="10" step="0.5">
+                <div class="value-display">Duration: <span id="messageLifetimeValue">10s</span></div>
+            </div>
+            <div class="control-group">
+                <label for="birthRate">Birth Rate</label>
+                <input type="range" id="birthRate" min="0.2" max="2" value="1" step="0.1">
+                <div class="value-display">Rate: <span id="birthRateValue">1s</span></div>
+            </div>
+        </div>
+
+        <div class="control-section">
+            <h3>Message Display</h3>
+            <div class="control-group">
+                <label for="maxMessages">Maximum Messages</label>
+                <input type="range" id="maxMessages" min="5" max="80" value="15" step="1">
+                <div class="value-display">Count: <span id="maxMessagesValue">15</span></div>
+            </div>
+            <div class="control-group">
+                <button id="randomizeBtn" class="button">Randomize Positions</button>
+            </div>
+        </div>
+
+        <div class="control-section">
+            <h3>Highlight Effects</h3>
+            <div class="control-group">
+                <label for="maxHighlights">Words Highlighted</label>
+                <input type="range" id="maxHighlights" min="0" max="5" value="3" step="1">
+                <div class="value-display">Count: <span id="maxHighlightsValue">3</span></div>
+            </div>
+            <div class="control-group">
+                <label for="highlightDuration">Highlight Duration</label>
+                <input type="range" id="highlightDuration" min="1" max="10" value="3" step="0.5">
+                <div class="value-display">Duration: <span id="highlightDurationValue">3s</span></div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const { ipcRenderer } = require('electron');
+        
+        // Initialize controls
+        const textSizeSlider = document.getElementById('textSize');
+        const textSizeValue = document.getElementById('textSizeValue');
+        const maxHighlightsSlider = document.getElementById('maxHighlights');
+        const maxHighlightsValue = document.getElementById('maxHighlightsValue');
+        const highlightDurationSlider = document.getElementById('highlightDuration');
+        const highlightDurationValue = document.getElementById('highlightDurationValue');
+        const maxMessagesSlider = document.getElementById('maxMessages');
+        const maxMessagesValue = document.getElementById('maxMessagesValue');
+        const messageLifetimeSlider = document.getElementById('messageLifetime');
+        const messageLifetimeValue = document.getElementById('messageLifetimeValue');
+        const birthRateSlider = document.getElementById('birthRate');
+        const birthRateValue = document.getElementById('birthRateValue');
+        const randomizeBtn = document.getElementById('randomizeBtn');
+        
+        // Text Size Event
+        textSizeSlider.addEventListener('input', function() {
+            const size = parseInt(this.value);
+            textSizeValue.textContent = `${size}px`;
+            ipcRenderer.send('update-text-size', size);
+        });
+        
+        // Highlight Events
+        maxHighlightsSlider.addEventListener('input', function() {
+            const value = parseInt(this.value);
+            maxHighlightsValue.textContent = value;
+            ipcRenderer.send('update-max-highlights', value);
+        });
+        
+        highlightDurationSlider.addEventListener('input', function() {
+            const value = parseFloat(this.value);
+            highlightDurationValue.textContent = `${value}s`;
+            ipcRenderer.send('update-highlight-duration', value * 1000);
+        });
+
+        // Max Messages Event
+        maxMessagesSlider.addEventListener('input', function() {
+            const value = parseInt(this.value);
+            maxMessagesValue.textContent = value;
+            ipcRenderer.send('update-max-messages', value);
+        });
+
+        // Message Timing Events
+        messageLifetimeSlider.addEventListener('input', function() {
+            const value = parseFloat(this.value);
+            messageLifetimeValue.textContent = `${value}s`;
+            ipcRenderer.send('update-message-lifetime', value * 1000);
+        });
+
+        birthRateSlider.addEventListener('input', function() {
+            const value = parseFloat(this.value);
+            birthRateValue.textContent = `${value}s`;
+            ipcRenderer.send('update-birth-rate', value * 1000);
+        });
+
+        // Randomize button event
+        randomizeBtn.addEventListener('click', function() {
+            ipcRenderer.send('randomize-positions');
+        });
+        
+        // Get initial values from main process
+        ipcRenderer.on('init-controls', (event, data) => {
+            textSizeSlider.value = data.textSize;
+            textSizeValue.textContent = `${data.textSize}px`;
+            
+            if (data.maxHighlights !== undefined) {
+                maxHighlightsSlider.value = data.maxHighlights;
+                maxHighlightsValue.textContent = data.maxHighlights;
+            }
+            
+            if (data.highlightDuration !== undefined) {
+                const durationInSeconds = data.highlightDuration / 1000;
+                highlightDurationSlider.value = durationInSeconds;
+                highlightDurationValue.textContent = `${durationInSeconds}s`;
+            }
+
+            if (data.maxMessages !== undefined) {
+                maxMessagesSlider.value = data.maxMessages;
+                maxMessagesValue.textContent = data.maxMessages;
+            }
+
+            if (data.messageLifetime !== undefined) {
+                const lifetimeInSeconds = data.messageLifetime / 1000;
+                messageLifetimeSlider.value = lifetimeInSeconds;
+                messageLifetimeValue.textContent = `${lifetimeInSeconds}s`;
+            }
+
+            if (data.birthRate !== undefined) {
+                const rateInSeconds = data.birthRate / 1000;
+                birthRateSlider.value = rateInSeconds;
+                birthRateValue.textContent = `${rateInSeconds}s`;
+            }
+        });
+
+        // Notify main process that control window is ready
+        ipcRenderer.send('control-window-ready');
+    </script>
+</body>
+</html>
