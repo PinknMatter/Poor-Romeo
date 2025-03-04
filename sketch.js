@@ -16,7 +16,7 @@ function preload() {
     const path = require('path');
     
     try {
-        const jsonPath = path.join(__dirname, 'Data', 'Clean_data', "Noah_hinge_data.json");
+        const jsonPath = path.join(__dirname,'Clean_data', "Noah_hinge_data.json");
         const data = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
         messageManager = new MessageManager();
         messageManager.loadMessages(data);
@@ -59,13 +59,13 @@ function draw() {
     messageManager.display();
     
     // Display performance stats
-    fill(255);
-    textAlign(LEFT, TOP);
-    textSize(12);
-    text(`FPS: ${currentFps}`, 10, 10);
-    text(`Active Messages: ${messageManager.displayMessages.length}`, 10, 25);
-    text(`Cache Size: ${messageManager.messageCache.size}`, 10, 40);
-    text(`Performance Mode: ${messageManager.lowPerformanceMode ? 'LOW' : 'NORMAL'}`, 10, 55);
+    // fill(255);
+    // textAlign(LEFT, TOP);
+    // textSize(12);
+    // text(`FPS: ${currentFps}`, 10, 10);
+    // text(`Active Messages: ${messageManager.displayMessages.length}`, 10, 25);
+    // text(`Cache Size: ${messageManager.messageCache.size}`, 10, 40);
+    // text(`Performance Mode: ${messageManager.lowPerformanceMode ? 'LOW' : 'NORMAL'}`, 10, 55);
 }
 
 function windowResized() {
