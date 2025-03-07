@@ -17,7 +17,24 @@ class TextMessage {
         this.fullHighlight = false;
         this.highlightBeforeDeath = 1000; // Start highlighting 1 second before death
         this.highlightProgress = 0; // Progress of the highlight animation (0 to 1)
+        
+        // Use highlight colors from the color sheet
+        this.highlightColors = [
+            COLORS.HIGHLIGHT.RED,
+            COLORS.HIGHLIGHT.GREEN,
+            COLORS.HIGHLIGHT.BLUE,
+            COLORS.HIGHLIGHT.YELLOW
+        ];
+        
+        // Add any other colors from HIGHLIGHT that exist
+        if (COLORS.HIGHLIGHT.MAGENTA) this.highlightColors.push(COLORS.HIGHLIGHT.MAGENTA);
+        if (COLORS.HIGHLIGHT.CYAN) this.highlightColors.push(COLORS.HIGHLIGHT.CYAN);
+        if (COLORS.HIGHLIGHT.ORANGE) this.highlightColors.push(COLORS.HIGHLIGHT.ORANGE);
+        if (COLORS.HIGHLIGHT.PURPLE) this.highlightColors.push(COLORS.HIGHLIGHT.PURPLE);
+        
+        this.deathHighlightColor = [36, 46, 173]; // Default highlight color for death animation
         this.processWords();
+        this.lastFontSize = window.currentTextSize || 16; // Track the font size when message was created
     }
 
     processWords() {
@@ -35,8 +52,8 @@ class TextMessage {
         const currentTime = millis();
         
         // Remove expired highlights
-        for (const [index, startTime] of this.highlightedWords.entries()) {
-            if (currentTime - startTime > (window.highlightDuration || 3000)) {
+        for (const [index, data] of this.highlightedWords.entries()) {
+            if (currentTime - data.startTime > (window.highlightDuration || 3000)) {
                 this.highlightedWords.delete(index);
             }
         }
@@ -48,7 +65,13 @@ class TextMessage {
             
             if (availableIndices.length > 0) {
                 const randomIndex = availableIndices[floor(random(availableIndices.length))];
-                this.highlightedWords.set(randomIndex, currentTime);
+                const randomColorIndex = floor(random(this.highlightColors.length));
+                const color = this.highlightColors[randomColorIndex];
+                
+                this.highlightedWords.set(randomIndex, {
+                    startTime: currentTime,
+                    color: color
+                });
             }
         }
     }
@@ -90,11 +113,12 @@ class TextMessage {
             this.isVisible = false;
         }
 
-        // Recalculate width if text size changed
-        push();
-        textSize(window.currentTextSize || 16);
-        this.totalWidth = textWidth(this.message);
-        pop();
+        // Check if font size has changed and update width if needed
+        const currentFontSize = window.currentTextSize || 16;
+        if (this.lastFontSize !== currentFontSize) {
+            this.lastFontSize = currentFontSize;
+            this.processWords(); // Recalculate width with new font size
+        }
     }
 
     cleanup() {
@@ -112,9 +136,8 @@ class TextMessage {
         const visibleText = this.message.substring(0, Math.floor(this.currentChar));
         const words = visibleText.split(' ');
 
-        // Calculate positions
-        const totalWidth = textWidth(this.message);
-        const startX = this.x - totalWidth/2;
+        // Calculate positions - use the current totalWidth, which is updated when font size changes
+        const startX = this.x - this.totalWidth/2;
         let currentX = startX;
 
         // Draw each word
@@ -130,24 +153,71 @@ class TextMessage {
             // Highlight from back to front
             for (let i = totalWords - 1; i >= totalWords - highlightedWordCount; i--) {
                 if (i >= 0) {
-                    this.highlightedWords.set(i, true);
+                    this.highlightedWords.set(i, {
+                        startTime: millis(),
+                        color: this.deathHighlightColor,
+                        isFullHighlight: true // Mark that this is part of the full highlight
+                    });
                 }
             }
         }
 
+        // Pre-calculate word widths to ensure consistent spacing
+        const wordWidths = [];
         for (let i = 0; i < words.length; i++) {
             const word = words[i];
-            const wordWidth = textWidth(word + ' ');
+            // Calculate width of just the word (without space)
+            const wordWidth = textWidth(word);
+            // Calculate width of space if needed
+            const spaceWidth = (i < words.length - 1) ? textWidth(' ') : 0;
+            
+            wordWidths.push({ 
+                wordWidth: wordWidth,
+                spaceWidth: spaceWidth,
+                totalWidth: wordWidth + spaceWidth,
+                word: word
+            });
+        }
 
+        for (let i = 0; i < words.length; i++) {
+            const wordInfo = wordWidths[i];
+            
             // Check if this word is highlighted
             if (this.highlightedWords.has(i)) {
-                fill(36, 46, 173);
-                rect(currentX, this.y - fontSize/2 - 3, wordWidth, fontSize + 3);
+                const highlightData = this.highlightedWords.get(i);
+                const highlightColor = highlightData.color || this.deathHighlightColor;
+                const isFullHighlight = highlightData.isFullHighlight || false;
+                
+                // Add padding to highlight rectangle for better appearance
+                const padding = fontSize * 0.1;
+                fill(highlightColor[0], highlightColor[1], highlightColor[2]);
+                
+                if (isFullHighlight && wordInfo.spaceWidth > 0) {
+                    // For full highlight mode, include the space after the word
+                    rect(currentX - padding, 
+                         this.y - fontSize/2 - padding, 
+                         wordInfo.totalWidth + padding * 2, 
+                         fontSize + padding * 2);
+                } else {
+                    // For normal highlighting, only highlight the word itself
+                    rect(currentX - padding, 
+                         this.y - fontSize/2 - padding, 
+                         wordInfo.wordWidth + padding * 2, 
+                         fontSize + padding * 2);
+                }
+                     
                 fill(255);
             }
 
-            text(word + ' ', currentX, this.y);
-            currentX += wordWidth;
+            // Draw the word
+            text(wordInfo.word, currentX, this.y);
+            currentX += wordInfo.wordWidth;
+            
+            // Draw the space separately (if not the last word)
+            if (wordInfo.spaceWidth > 0) {
+                text(' ', currentX, this.y);
+                currentX += wordInfo.spaceWidth;
+            }
         }
 
         // Draw cursor

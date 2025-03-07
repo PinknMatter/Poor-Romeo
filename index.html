@@ -21,6 +21,9 @@
     <script>
         const { ipcRenderer } = require('electron');
         
+        // Expose electron to the sketch
+        window.electron = { ipcRenderer };
+        
         // Listen for control updates
         ipcRenderer.on('update-text-size', (event, size) => {
             window.currentTextSize = size;
@@ -43,12 +46,32 @@
         });
 
         ipcRenderer.on('update-birth-rate', (event, value) => {
-            window.messageInterval = value;
+            window.messageInterval = value * 1000; // Convert seconds to milliseconds
+            console.log('Updated birth rate:', value, 'seconds (', window.messageInterval, 'ms)');
         });
-
+        
+        ipcRenderer.on('update-transition-speed', (event, value) => {
+            if (messageManager) {
+                messageManager.fontSizeTransitionSpeed = value;
+                console.log('Updated transition speed:', value);
+            }
+        });
+        
         ipcRenderer.on('randomize-positions', () => {
             if (messageManager) {
                 messageManager.randomizePositions();
+                console.log('Randomized positions');
+            }
+        });
+        
+        ipcRenderer.on('update-custom-text', (event, customText) => {
+            if (messageManager) {
+                const sentences = customText.split(/\s*,\s*/).filter(sentence => sentence.length > 0);
+                if (sentences.length > 0) {
+                    window.customWords = sentences;
+                    messageManager.loadCustomWords(window.customWords);
+                    console.log('Updated custom sentences:', window.customWords);
+                }
             }
         });
 
@@ -58,7 +81,12 @@
         window.maxMessages = 15;
         window.messageLifetime = 10000;
         window.messageInterval = 1000;
+        window.customWords = ["Hello World", "Welcome to the Visualization", "Text Display"];
     </script>
+    
+    <!-- Color Sheet - Load this first so colors are available to other scripts -->
+    <script src="colorSheet.js"></script>
+    
     <script src="textClass.js"></script>
     <script src="messageManager.js"></script>
     <script src="sketch.js"></script>

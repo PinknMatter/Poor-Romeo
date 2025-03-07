@@ -79,8 +79,13 @@
             <h3>Text Appearance</h3>
             <div class="control-group">
                 <label for="textSize">Font Size</label>
-                <input type="range" id="textSize" min="8" max="50" value="23" step="1">
-                <div class="value-display">Size: <span id="textSizeValue">23px</span></div>
+                <input type="range" id="textSize" min="10" max="120" value="70" step="1">
+                <div class="value-display">Size: <span id="textSizeValue">70</span>px</div>
+            </div>
+            <div class="control-group">
+                <label for="transitionSpeed">Font Size Transition Speed</label>
+                <input type="range" id="transitionSpeed" min="0.05" max="1" value="0.2" step="0.05">
+                <div class="value-display">Speed: <span id="transitionSpeedValue">0.2</span></div>
             </div>
         </div>
 
@@ -102,11 +107,30 @@
             <h3>Message Display</h3>
             <div class="control-group">
                 <label for="maxMessages">Maximum Messages</label>
-                <input type="range" id="maxMessages" min="5" max="80" value="15" step="1">
-                <div class="value-display">Count: <span id="maxMessagesValue">15</span></div>
+                <input type="range" id="maxMessages" min="5" max="80" value="70" step="1">
+                <div class="value-display">Count: <span id="maxMessagesValue">70</span></div>
+            </div>
+            <div class="control-group">
+                <label for="showBoundingBoxes">Show Bounding Boxes:</label>
+                <input type="checkbox" id="showBoundingBoxes">
+            </div>
+            <div class="control-group">
+                <label for="boundingBoxSize">Bounding Box Size:</label>
+                <input type="range" id="boundingBoxSize" min="0.1" max="2.0" step="0.1" value="0.3">
+                <div class="value-display">Size: <span id="boundingBoxSizeValue">0.3</span>×</div>
             </div>
             <div class="control-group">
                 <button id="randomizeBtn" class="button">Randomize Positions</button>
+            </div>
+        </div>
+
+        <div class="control-section">
+            <h3>Background Color</h3>
+            <div class="control-group">
+                <button id="randomizeBgBtn" class="button">Randomize Background Color</button>
+            </div>
+            <div class="control-group">
+                <button id="resetBgBtn" class="button">Reset to Black Background</button>
             </div>
         </div>
 
@@ -123,6 +147,15 @@
                 <div class="value-display">Duration: <span id="highlightDurationValue">3s</span></div>
             </div>
         </div>
+
+        <div class="control-section">
+            <h3>Custom Text Input</h3>
+            <div class="control-group">
+                <label for="customText">Enter Sentences (separated by commas)</label>
+                <input type="text" id="customText" placeholder="Enter sentences here, separated by commas..." style="width: 100%; padding: 8px; margin-bottom: 10px; border-radius: 4px; border: 1px solid #ccc;">
+                <button id="submitTextBtn" class="button">Submit Text</button>
+            </div>
+        </div>
     </div>
     <script>
         const { ipcRenderer } = require('electron');
@@ -130,6 +163,8 @@
         // Initialize controls
         const textSizeSlider = document.getElementById('textSize');
         const textSizeValue = document.getElementById('textSizeValue');
+        const transitionSpeedSlider = document.getElementById('transitionSpeed');
+        const transitionSpeedValue = document.getElementById('transitionSpeedValue');
         const maxHighlightsSlider = document.getElementById('maxHighlights');
         const maxHighlightsValue = document.getElementById('maxHighlightsValue');
         const highlightDurationSlider = document.getElementById('highlightDuration');
@@ -141,12 +176,26 @@
         const birthRateSlider = document.getElementById('birthRate');
         const birthRateValue = document.getElementById('birthRateValue');
         const randomizeBtn = document.getElementById('randomizeBtn');
+        const customTextInput = document.getElementById('customText');
+        const submitTextBtn = document.getElementById('submitTextBtn');
+        const showBoundingBoxesCheckbox = document.getElementById('showBoundingBoxes');
+        const boundingBoxSizeSlider = document.getElementById('boundingBoxSize');
+        const boundingBoxSizeValue = document.getElementById('boundingBoxSizeValue');
+        const randomizeBgBtn = document.getElementById('randomizeBgBtn');
+        const resetBgBtn = document.getElementById('resetBgBtn');
         
         // Text Size Event
         textSizeSlider.addEventListener('input', function() {
             const size = parseInt(this.value);
             textSizeValue.textContent = `${size}px`;
             ipcRenderer.send('update-text-size', size);
+        });
+        
+        // Transition Speed Event
+        transitionSpeedSlider.addEventListener('input', function() {
+            const speed = parseFloat(this.value);
+            transitionSpeedValue.textContent = speed;
+            ipcRenderer.send('update-transition-speed', speed);
         });
         
         // Highlight Events
@@ -179,12 +228,52 @@
         birthRateSlider.addEventListener('input', function() {
             const value = parseFloat(this.value);
             birthRateValue.textContent = `${value}s`;
-            ipcRenderer.send('update-birth-rate', value * 1000);
+            ipcRenderer.send('update-birth-rate', value);
         });
 
         // Randomize button event
         randomizeBtn.addEventListener('click', function() {
             ipcRenderer.send('randomize-positions');
+        });
+        
+        // Show Bounding Boxes checkbox event
+        showBoundingBoxesCheckbox.addEventListener('change', function() {
+            ipcRenderer.send('toggle-bounding-boxes', this.checked);
+        });
+        
+        // Bounding Box Size slider event
+        boundingBoxSizeSlider.addEventListener('input', function() {
+            const value = parseFloat(this.value);
+            boundingBoxSizeValue.textContent = value.toFixed(1);
+            ipcRenderer.send('update-bounding-box-size', value);
+        });
+        
+        // Randomize Background Color button event
+        randomizeBgBtn.addEventListener('click', function() {
+            ipcRenderer.send('randomize-background-color');
+        });
+        
+        // Reset Background Color button event
+        resetBgBtn.addEventListener('click', function() {
+            ipcRenderer.send('reset-background-color');
+        });
+        
+        // Custom text input event
+        submitTextBtn.addEventListener('click', function() {
+            const customText = customTextInput.value.trim();
+            if (customText) {
+                ipcRenderer.send('update-custom-text', customText);
+            }
+        });
+        
+        // Also allow submitting with Enter key
+        customTextInput.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                const customText = customTextInput.value.trim();
+                if (customText) {
+                    ipcRenderer.send('update-custom-text', customText);
+                }
+            }
         });
         
         // Get initial values from main process
@@ -218,6 +307,20 @@
                 const rateInSeconds = data.birthRate / 1000;
                 birthRateSlider.value = rateInSeconds;
                 birthRateValue.textContent = `${rateInSeconds}s`;
+            }
+
+            if (data.transitionSpeed !== undefined) {
+                transitionSpeedSlider.value = data.transitionSpeed;
+                transitionSpeedValue.textContent = data.transitionSpeed;
+            }
+            
+            if (data.showBoundingBoxes !== undefined) {
+                showBoundingBoxesCheckbox.checked = data.showBoundingBoxes;
+            }
+            
+            if (data.boundingBoxSize !== undefined) {
+                boundingBoxSizeSlider.value = data.boundingBoxSize;
+                boundingBoxSizeValue.textContent = data.boundingBoxSize.toFixed(1);
             }
         });
 

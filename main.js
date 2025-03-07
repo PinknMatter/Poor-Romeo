@@ -97,8 +97,33 @@ ipcMain.on('update-birth-rate', (event, value) => {
     mainWindow.webContents.send('update-birth-rate', value);
 });
 
+ipcMain.on('update-transition-speed', (event, value) => {
+    mainWindow.webContents.send('update-transition-speed', value);
+});
+
 ipcMain.on('randomize-positions', () => {
     mainWindow.webContents.send('randomize-positions');
+});
+
+ipcMain.on('update-custom-text', (event, customText) => {
+    mainWindow.webContents.send('update-custom-text', customText);
+});
+
+ipcMain.on('toggle-bounding-boxes', (event, value) => {
+    mainWindow.webContents.send('receive-message', { type: 'toggle-bounding-boxes', value: value });
+});
+
+ipcMain.on('update-bounding-box-size', (event, value) => {
+    mainWindow.webContents.send('receive-message', { type: 'update-bounding-box-size', value: value });
+});
+
+// Background color controls
+ipcMain.on('randomize-background-color', () => {
+    mainWindow.webContents.send('randomize-background-color');
+});
+
+ipcMain.on('reset-background-color', () => {
+    mainWindow.webContents.send('reset-background-color');
 });
 
 // Send initial values to control window when it's ready
