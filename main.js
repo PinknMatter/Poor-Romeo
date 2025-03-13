@@ -19,7 +19,8 @@ function createMainWindow() {
         height: 800,
         webPreferences: {
             nodeIntegration: true,
-            contextIsolation: false
+            contextIsolation: false,
+            preload: path.join(__dirname, 'preload.js')
         }
     });
 
@@ -35,7 +36,8 @@ function createControlWindow() {
         title: 'Controls',
         webPreferences: {
             nodeIntegration: true,
-            contextIsolation: false
+            contextIsolation: false,
+            preload: path.join(__dirname, 'preload.js')
         }
     });
 
@@ -101,6 +103,23 @@ ipcMain.on('randomize-positions', () => {
     mainWindow.webContents.send('randomize-positions');
 });
 
+// IPC handlers for text bot
+ipcMain.on('update-text-bot-size', (event, size) => {
+    mainWindow.webContents.send('update-text-bot-size', size);
+});
+
+ipcMain.on('update-background-opacity', (event, value) => {
+    mainWindow.webContents.send('update-background-opacity', value);
+});
+
+ipcMain.on('send-test-message', (event, message) => {
+    mainWindow.webContents.send('send-test-message', message);
+});
+
+ipcMain.on('refresh-bot-response', (event) => {
+    mainWindow.webContents.send('refresh-bot-response');
+});
+
 // Send initial values to control window when it's ready
 ipcMain.on('control-window-ready', () => {
     controlWindow.webContents.send('init-controls', {
@@ -109,6 +128,8 @@ ipcMain.on('control-window-ready', () => {
         highlightDuration: 3000,
         maxMessages: 15,
         messageLifetime: 10000,
-        birthRate: 1000
+        birthRate: 1000,
+        textBotSize: 18,
+        backgroundOpacity: 100
     });
 });

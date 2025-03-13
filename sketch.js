@@ -1,4 +1,5 @@
 let messageManager;
+let textBot;
 let fpsCounter = 0;
 let lastFpsUpdate = 0;
 let currentFps = 0;
@@ -31,6 +32,12 @@ function setup() {
     textWrap(WORD);
     background(0);
     frameRate(60);
+    
+    // Initialize the text bot
+    textBot = new TextBot();
+    
+    // Set up IPC listeners
+    setupIPCListeners();
 }
 
 function draw() {
@@ -58,6 +65,18 @@ function draw() {
     messageManager.update();
     messageManager.display();
     
+    // Update and display the text bot
+    textBot.update();
+    
+    // Calculate chat dimensions
+    const chatWidth = width * 0.6;
+    const chatHeight = height * 0.6;
+    const chatX = width / 2;
+    const chatY = height * 0.4;
+    
+    // Draw the text bot with the calculated dimensions
+    textBot.drawMessages(chatX, chatY, chatWidth, chatHeight);
+    
     // Display performance stats
     // fill(255);
     // textAlign(LEFT, TOP);
@@ -70,5 +89,32 @@ function draw() {
 
 function windowResized() {
     resizeCanvas(windowWidth, windowHeight);
-    background(255);
+    background(0);
+}
+
+// Set up IPC listeners for the renderer process
+function setupIPCListeners() {
+    // Check if we're in an Electron environment with the API
+    if (window.api) {
+        // Listen for messages from the main process
+        window.api.receive('update-text-appearance', (data) => {
+            messageManager.updateTextAppearance(data);
+        });
+        
+        window.api.receive('update-message-timing', (data) => {
+            messageManager.updateMessageTiming(data);
+        });
+        
+        window.api.receive('update-background-opacity', (opacity) => {
+            textBot.setBackgroundOpacity(opacity);
+        });
+        
+        window.api.receive('send-test-message', (message) => {
+            textBot.simulateResponse(message);
+        });
+        
+        window.api.receive('refresh-bot-response', () => {
+            textBot.simulateResponse("Tell me something interesting");
+        });
+    }
 }

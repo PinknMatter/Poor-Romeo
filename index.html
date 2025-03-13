@@ -52,6 +52,43 @@
             }
         });
 
+        // Text Bot IPC events
+        ipcRenderer.on('update-text-bot-size', (event, size) => {
+            if (textBot) {
+                textBot.fontSize = size;
+            }
+        });
+
+        ipcRenderer.on('update-max-animated-words', (event, value) => {
+            if (textBot) {
+                textBot.maxAnimatedWords = value;
+            }
+        });
+
+        ipcRenderer.on('update-animation-interval', (event, value) => {
+            if (textBot) {
+                textBot.animationInterval = value;
+            }
+        });
+
+        ipcRenderer.on('update-background-opacity', (event, value) => {
+            if (textBot) {
+                textBot.setBackgroundOpacity(value);
+            }
+        });
+
+        ipcRenderer.on('send-test-message', (event, message) => {
+            if (textBot) {
+                textBot.simulateResponse(message);
+            }
+        });
+
+        ipcRenderer.on('refresh-bot-response', () => {
+            if (textBot) {
+                textBot.simulateResponse("Tell me something interesting");
+            }
+        });
+
         // Set initial values
         window.maxHighlights = 3;
         window.highlightDuration = 3000;
@@ -61,6 +98,7 @@
     </script>
     <script src="textClass.js"></script>
     <script src="messageManager.js"></script>
+    <script src="textBot.js"></script>
     <script src="sketch.js"></script>
 </body>
 </html>

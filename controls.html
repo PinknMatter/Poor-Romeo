@@ -79,8 +79,8 @@
             <h3>Text Appearance</h3>
             <div class="control-group">
                 <label for="textSize">Font Size</label>
-                <input type="range" id="textSize" min="8" max="50" value="23" step="1">
-                <div class="value-display">Size: <span id="textSizeValue">23px</span></div>
+                <input type="range" id="textSize" min="8" max="50" value="16" step="1">
+                <div class="value-display">Size: <span id="textSizeValue">16px</span></div>
             </div>
         </div>
 
@@ -123,10 +123,40 @@
                 <div class="value-display">Duration: <span id="highlightDurationValue">3s</span></div>
             </div>
         </div>
+
+        <div class="control-section">
+            <h3>Text Bot</h3>
+            <div class="control-group">
+                <label for="textBotSize">Font Size</label>
+                <input type="range" id="textBotSize" min="12" max="24" value="16" step="1">
+                <div class="value-display">Size: <span id="textBotSizeValue">16px</span></div>
+            </div>
+            <div class="control-group">
+                <label for="backgroundOpacity">Background Opacity</label>
+                <input type="range" id="backgroundOpacity" min="0" max="255" value="100" step="5">
+                <div class="value-display">Opacity: <span id="backgroundOpacityValue">100</span></div>
+            </div>
+            <div class="control-group">
+                <label for="testMessage">Test Message</label>
+                <input type="text" id="testMessage" placeholder="Enter a test message">
+                <button id="sendTestMessage">Send Test Message</button>
+            </div>
+            <div class="control-group">
+                <button id="refreshBotResponse">Refresh Bot Response</button>
+            </div>
+        </div>
     </div>
     <script>
-        const { ipcRenderer } = require('electron');
-        
+        // Function to send a message to the main process
+        function sendToMain(channel, data) {
+            if (window.api) {
+                window.api.send(channel, data);
+            } else if (window.require) {
+                const ipcRenderer = window.require('electron').ipcRenderer;
+                ipcRenderer.send(channel, data);
+            }
+        }
+
         // Initialize controls
         const textSizeSlider = document.getElementById('textSize');
         const textSizeValue = document.getElementById('textSizeValue');
@@ -141,88 +171,156 @@
         const birthRateSlider = document.getElementById('birthRate');
         const birthRateValue = document.getElementById('birthRateValue');
         const randomizeBtn = document.getElementById('randomizeBtn');
-        
+        const textBotSizeSlider = document.getElementById('textBotSize');
+        const textBotSizeValue = document.getElementById('textBotSizeValue');
+        const backgroundOpacitySlider = document.getElementById('backgroundOpacity');
+        const backgroundOpacityValue = document.getElementById('backgroundOpacityValue');
+        const sendTestMessageBtn = document.getElementById('sendTestMessage');
+        const refreshBotResponseBtn = document.getElementById('refreshBotResponse');
+        const testMessageInput = document.getElementById('testMessage');
+
         // Text Size Event
         textSizeSlider.addEventListener('input', function() {
             const size = parseInt(this.value);
             textSizeValue.textContent = `${size}px`;
-            ipcRenderer.send('update-text-size', size);
+            sendToMain('update-text-size', size);
         });
-        
+
         // Highlight Events
         maxHighlightsSlider.addEventListener('input', function() {
             const value = parseInt(this.value);
             maxHighlightsValue.textContent = value;
-            ipcRenderer.send('update-max-highlights', value);
+            sendToMain('update-max-highlights', value);
         });
-        
+
         highlightDurationSlider.addEventListener('input', function() {
             const value = parseFloat(this.value);
             highlightDurationValue.textContent = `${value}s`;
-            ipcRenderer.send('update-highlight-duration', value * 1000);
+            sendToMain('update-highlight-duration', value * 1000);
         });
 
         // Max Messages Event
         maxMessagesSlider.addEventListener('input', function() {
             const value = parseInt(this.value);
             maxMessagesValue.textContent = value;
-            ipcRenderer.send('update-max-messages', value);
+            sendToMain('update-max-messages', value);
         });
 
         // Message Timing Events
         messageLifetimeSlider.addEventListener('input', function() {
             const value = parseFloat(this.value);
             messageLifetimeValue.textContent = `${value}s`;
-            ipcRenderer.send('update-message-lifetime', value * 1000);
+            sendToMain('update-message-lifetime', value * 1000);
         });
 
         birthRateSlider.addEventListener('input', function() {
             const value = parseFloat(this.value);
             birthRateValue.textContent = `${value}s`;
-            ipcRenderer.send('update-birth-rate', value * 1000);
+            sendToMain('update-birth-rate', value * 1000);
         });
 
         // Randomize button event
         randomizeBtn.addEventListener('click', function() {
-            ipcRenderer.send('randomize-positions');
+            sendToMain('randomize-positions');
         });
-        
+
+        // Text Bot Size Event
+        textBotSizeSlider.addEventListener('input', function() {
+            const size = parseInt(this.value);
+            textBotSizeValue.textContent = `${size}px`;
+            sendToMain('update-text-bot-size', size);
+        });
+
+        // Background Opacity Event
+        backgroundOpacitySlider.addEventListener('input', function() {
+            const value = parseInt(this.value);
+            backgroundOpacityValue.textContent = value;
+            sendToMain('update-background-opacity', value);
+        });
+
+        // Send Test Message button event
+        sendTestMessageBtn.addEventListener('click', function() {
+            const message = testMessageInput.value;
+            sendToMain('send-test-message', message);
+        });
+
+        // Refresh Bot Response button event
+        refreshBotResponseBtn.addEventListener('click', function() {
+            sendToMain('refresh-bot-response');
+        });
+
         // Get initial values from main process
-        ipcRenderer.on('init-controls', (event, data) => {
-            textSizeSlider.value = data.textSize;
-            textSizeValue.textContent = `${data.textSize}px`;
-            
-            if (data.maxHighlights !== undefined) {
-                maxHighlightsSlider.value = data.maxHighlights;
-                maxHighlightsValue.textContent = data.maxHighlights;
-            }
-            
-            if (data.highlightDuration !== undefined) {
-                const durationInSeconds = data.highlightDuration / 1000;
-                highlightDurationSlider.value = durationInSeconds;
-                highlightDurationValue.textContent = `${durationInSeconds}s`;
-            }
+        if (window.api) {
+            window.api.on('init-controls', (event, data) => {
+                textSizeSlider.value = data.textSize;
+                textSizeValue.textContent = `${data.textSize}px`;
 
-            if (data.maxMessages !== undefined) {
-                maxMessagesSlider.value = data.maxMessages;
-                maxMessagesValue.textContent = data.maxMessages;
-            }
+                if (data.maxHighlights !== undefined) {
+                    maxHighlightsSlider.value = data.maxHighlights;
+                    maxHighlightsValue.textContent = data.maxHighlights;
+                }
 
-            if (data.messageLifetime !== undefined) {
-                const lifetimeInSeconds = data.messageLifetime / 1000;
-                messageLifetimeSlider.value = lifetimeInSeconds;
-                messageLifetimeValue.textContent = `${lifetimeInSeconds}s`;
-            }
+                if (data.highlightDuration !== undefined) {
+                    const durationInSeconds = data.highlightDuration / 1000;
+                    highlightDurationSlider.value = durationInSeconds;
+                    highlightDurationValue.textContent = `${durationInSeconds}s`;
+                }
 
-            if (data.birthRate !== undefined) {
-                const rateInSeconds = data.birthRate / 1000;
-                birthRateSlider.value = rateInSeconds;
-                birthRateValue.textContent = `${rateInSeconds}s`;
-            }
-        });
+                if (data.maxMessages !== undefined) {
+                    maxMessagesSlider.value = data.maxMessages;
+                    maxMessagesValue.textContent = data.maxMessages;
+                }
+
+                if (data.messageLifetime !== undefined) {
+                    const lifetimeInSeconds = data.messageLifetime / 1000;
+                    messageLifetimeSlider.value = lifetimeInSeconds;
+                    messageLifetimeValue.textContent = `${lifetimeInSeconds}s`;
+                }
+
+                if (data.birthRate !== undefined) {
+                    const rateInSeconds = data.birthRate / 1000;
+                    birthRateSlider.value = rateInSeconds;
+                    birthRateValue.textContent = `${rateInSeconds}s`;
+                }
+            });
+        } else if (window.require) {
+            const ipcRenderer = window.require('electron').ipcRenderer;
+            ipcRenderer.on('init-controls', (event, data) => {
+                textSizeSlider.value = data.textSize;
+                textSizeValue.textContent = `${data.textSize}px`;
+
+                if (data.maxHighlights !== undefined) {
+                    maxHighlightsSlider.value = data.maxHighlights;
+                    maxHighlightsValue.textContent = data.maxHighlights;
+                }
+
+                if (data.highlightDuration !== undefined) {
+                    const durationInSeconds = data.highlightDuration / 1000;
+                    highlightDurationSlider.value = durationInSeconds;
+                    highlightDurationValue.textContent = `${durationInSeconds}s`;
+                }
+
+                if (data.maxMessages !== undefined) {
+                    maxMessagesSlider.value = data.maxMessages;
+                    maxMessagesValue.textContent = data.maxMessages;
+                }
+
+                if (data.messageLifetime !== undefined) {
+                    const lifetimeInSeconds = data.messageLifetime / 1000;
+                    messageLifetimeSlider.value = lifetimeInSeconds;
+                    messageLifetimeValue.textContent = `${lifetimeInSeconds}s`;
+                }
+
+                if (data.birthRate !== undefined) {
+                    const rateInSeconds = data.birthRate / 1000;
+                    birthRateSlider.value = rateInSeconds;
+                    birthRateValue.textContent = `${rateInSeconds}s`;
+                }
+            });
+        }
 
         // Notify main process that control window is ready
-        ipcRenderer.send('control-window-ready');
+        sendToMain('control-window-ready');
     </script>
 </body>
 </html>
