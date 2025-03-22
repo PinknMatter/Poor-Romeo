@@ -8,7 +8,9 @@
     "dev": "electron ."
   },
   "dependencies": {
+    "dotenv": "^16.4.5",
     "electron": "^28.1.0",
-    "electron-reload": "^2.0.0-alpha.1"
+    "electron-reload": "^2.0.0-alpha.1",
+    "openai": "^4.28.0"
   }
 }

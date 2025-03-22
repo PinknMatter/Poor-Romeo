@@ -1,0 +1,14 @@
+{
+  "name": "lydia-chatbot",
+  "version": "1.0.0",
+  "description": "JavaScript version of the Lydia chatbot",
+  "main": "chatbot.js",
+  "scripts": {
+    "start": "node chatbot.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "form-data": "^4.0.2",
+    "openai": "^4.28.0"
+  }
+}

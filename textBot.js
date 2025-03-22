@@ -49,6 +49,23 @@ class TextBot {
             isBot: true,
             timestamp: null
         });
+        
+        // Set up IPC listeners for direct bot responses
+        try {
+            const { ipcRenderer } = require('electron');
+            
+            // Listen for direct bot responses
+            ipcRenderer.on('bot-response-received', (event, response) => {
+                this.addBotMessage(response);
+            });
+            
+            // Listen for direct user messages
+            ipcRenderer.on('user-message-received', (event, message) => {
+                this.addUserMessage(message);
+            });
+        } catch (error) {
+            console.error('Error setting up IPC listeners:', error);
+        }
     }
     
     // Add a user message
@@ -72,16 +89,11 @@ class TextBot {
     
     // Add a bot message
     addBotMessage(text) {
-        if (text.trim().length === 0) return;
+        console.log("TextBot: Adding bot message:", text.substring(0, 50) + (text.length > 50 ? '...' : ''));
         
-        // If we're waiting for a bot response, queue the message
-        if (this.waitingForBotResponse) {
-            this.pendingBotMessage = text;
-            return;
-        }
-        
-        // If typing animation is active, queue the message
+        // If typing indicator is active for a bot message, store it as pending
         if (this.isTyping && this.typingIsBot) {
+            console.log("TextBot: Typing indicator active, storing as pending message");
             this.pendingBotMessage = text;
             return;
         }
@@ -93,8 +105,13 @@ class TextBot {
             timestamp: null
         });
         
+        console.log("TextBot: Bot message added to messages array, length:", this.messages.length);
+        
         // Start slide-up animation for existing messages
         this.startSlideUpAnimation();
+        
+        // Clear the waiting flag
+        this.waitingForBotResponse = false;
     }
     
     // Start slide-up animation
@@ -581,51 +598,72 @@ class TextBot {
         // Add user message
         this.addUserMessage(prompt);
         
-        // Fetch response from OpenAI
-        const response = await this.fetchResponseFromOpenAI(prompt);
-        
-        // Add bot message
-        this.addBotMessage(response);
+        try {
+            // Fetch response from OpenAI
+            const response = await this.fetchResponseFromOpenAI(prompt);
+            
+            // Add bot message
+            this.addBotMessage(response);
+        } catch (error) {
+            console.error('Error processing response:', error);
+            // Show an error message instead of a preset response
+            this.addBotMessage("I'm having trouble connecting right now. Can we try again?");
+        }
     }
     
     // Simulate a response (for testing)
     simulateResponse(message) {
-        // Add the user message first
-        this.addUserMessage(message);
+        // Check if the message came from the chatbot interface
+        // If it did, we don't need to add it or fetch a response again
+        if (message.startsWith('__CHATBOT_MESSAGE__')) {
+            // This is a special marker that this message was already processed
+            // Just remove the marker and add the user message
+            this.addUserMessage(message.replace('__CHATBOT_MESSAGE__', ''));
+            return;
+        }
         
-        // Then add a bot response
-        const responses = [
-            "I'm thinking about that...",
-            "That's an interesting point!",
-            "Let me consider that for a moment.",
-            "I have some thoughts on that.",
-            "Here's what I think about that.",
-            "I'm not sure I understand. Can you clarify?",
-            "That's a great question!",
-            "I've been wondering about that too.",
-            "Let me share my perspective on that.",
-            "I appreciate you bringing that up."
-        ];
+        // We don't add the user message here anymore
+        // It will be added by the user-message-received listener in sketch.js
+        // This prevents duplicate messages
         
-        // Choose a random response
-        const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-        this.addBotMessage(randomResponse);
+        // Start typing indicator immediately
+        this.startTypingIndicator(true);
+        
+        // Send the message to the chatbot via the API bridge
+        if (window.api) {
+            window.api.send('get-chatbot-response', message);
+        } else {
+            console.error('API bridge not available. Cannot send message to chatbot.');
+            this.isTyping = false;
+            this.addBotMessage("I'm sorry, I can't connect to my brain right now.");
+        }
     }
     
-    // Fetch response from OpenAI (to be implemented)
+    // Fetch response from OpenAI
     async fetchResponseFromOpenAI(prompt) {
-        // This would be replaced with actual API call
-        return "This is a placeholder response. In a real implementation, this would come from the OpenAI API.";
-    }
-    
-    // Start typing indicator animation
-    startTypingIndicator(isBot) {
-        this.isTyping = true;
-        this.typingStartTime = millis();
-        this.typingIsBot = isBot;
-        
-        // Start slide-up animation for existing messages
-        this.startSlideUpAnimation();
+        try {
+            // Use the Node.js bridge to communicate with the OpenAI API
+            const { ipcRenderer } = require('electron');
+            
+            // Create a promise that will be resolved when the response is received
+            return new Promise((resolve, reject) => {
+                // Send the prompt to the main process
+                ipcRenderer.send('get-chatbot-response', prompt);
+                
+                // Listen for the response
+                ipcRenderer.once('chatbot-response', (event, response) => {
+                    resolve(response);
+                });
+                
+                // Set a timeout in case the response takes too long
+                setTimeout(() => {
+                    reject(new Error('Response timeout'));
+                }, 30000); // 30 seconds timeout
+            });
+        } catch (error) {
+            console.error('Error fetching response from OpenAI:', error);
+            return "I'm having trouble connecting right now. Can we try again?";
+        }
     }
     
     // Update typing indicator state
@@ -641,12 +679,17 @@ class TextBot {
             
             // If there's a pending bot message, add it now
             if (this.pendingBotMessage) {
+                console.log("TextBot: Typing complete, adding pending bot message:", 
+                    this.pendingBotMessage.substring(0, 50) + (this.pendingBotMessage.length > 50 ? '...' : ''));
+                
                 // Add message to array without starting a new slide-up animation
                 this.messages.push({
                     text: this.pendingBotMessage,
                     isBot: true,
                     timestamp: null
                 });
+                
+                console.log("TextBot: Pending bot message added to messages array, length:", this.messages.length);
                 
                 // Reset pending message
                 this.pendingBotMessage = null;
@@ -671,11 +714,7 @@ class TextBot {
         if (elapsedTime >= this.typingDelay) {
             this.typingDelayActive = false;
             
-            // After delay, prepare a bot response
-            const botResponse = this.generateBotResponse();
-            this.pendingBotMessage = botResponse;
-            
-            // Start typing indicator animation
+            // Just start typing indicator without generating a preset response
             this.startTypingIndicator(true);
         }
     }
@@ -698,5 +737,22 @@ class TextBot {
         // Choose a random response
         const randomResponse = responses[Math.floor(Math.random() * responses.length)];
         return randomResponse;
+    }
+    
+    // Start typing indicator animation
+    startTypingIndicator(isBot = false) {
+        this.isTyping = true;
+        this.typingStartTime = millis();
+        this.typingIsBot = isBot;
+        this.typingText = '';
+        this.typingIndex = 0;
+        
+        // If this is a bot typing, set the waiting flag
+        if (isBot) {
+            this.waitingForBotResponse = true;
+        }
+        
+        // Start slide-up animation for existing messages
+        this.startSlideUpAnimation();
     }
 }

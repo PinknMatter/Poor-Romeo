@@ -17,7 +17,7 @@ function preload() {
     const path = require('path');
     
     try {
-        const jsonPath = path.join(__dirname,'Clean_data', "Noah_hinge_data.json");
+        const jsonPath = path.join(__dirname,'Clean_data', "Lydia_hinge_data.json");
         const data = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
         messageManager = new MessageManager();
         messageManager.loadMessages(data);
@@ -115,6 +115,20 @@ function setupIPCListeners() {
         
         window.api.receive('refresh-bot-response', () => {
             textBot.simulateResponse("Tell me something interesting");
+        });
+        
+        window.api.receive('bot-response-received', (response) => {
+            console.log('Sketch: Received bot response:', response.substring(0, 50) + (response.length > 50 ? '...' : ''));
+            // Clear the typing indicator before adding the message
+            textBot.isTyping = false;
+            textBot.waitingForBotResponse = false;
+            console.log('Sketch: Adding bot message to textBot');
+            textBot.addBotMessage(response);
+        });
+        
+        window.api.receive('user-message-received', (message) => {
+            console.log('Sketch: Received user message:', message);
+            textBot.addUserMessage(message);
         });
     }
 }

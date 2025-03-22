@@ -59,7 +59,7 @@
             display: block;
             width: 100%;
             padding: 10px;
-            background: #36, 46, 173;
+            background: rgb(36, 46, 173);
             color: white;
             border: none;
             border-radius: 5px;
@@ -145,6 +145,18 @@
                 <button id="refreshBotResponse">Refresh Bot Response</button>
             </div>
         </div>
+
+        <div class="control-section">
+            <h3>Lydia Chatbot</h3>
+            <div class="control-group">
+                <label for="chatMessage">Chat with Lydia</label>
+                <input type="text" id="chatMessage" placeholder="Type your message here...">
+                <button id="sendChatMessage">Send Message</button>
+            </div>
+            <div class="control-group">
+                <div id="chatStatus">Ready to chat</div>
+            </div>
+        </div>
     </div>
     <script>
         // Function to send a message to the main process
@@ -178,6 +190,9 @@
         const sendTestMessageBtn = document.getElementById('sendTestMessage');
         const refreshBotResponseBtn = document.getElementById('refreshBotResponse');
         const testMessageInput = document.getElementById('testMessage');
+        const chatMessageInput = document.getElementById('chatMessage');
+        const sendChatMessageBtn = document.getElementById('sendChatMessage');
+        const chatStatus = document.getElementById('chatStatus');
 
         // Text Size Event
         textSizeSlider.addEventListener('input', function() {
@@ -247,6 +262,33 @@
         // Refresh Bot Response button event
         refreshBotResponseBtn.addEventListener('click', function() {
             sendToMain('refresh-bot-response');
+        });
+
+        // Chatbot Events
+        sendChatMessageBtn.addEventListener('click', function() {
+            const message = chatMessageInput.value.trim();
+            if (message) {
+                chatStatus.textContent = 'Sending message...';
+                sendToMain('get-chatbot-response', message);
+                chatMessageInput.value = '';
+                
+                // Reset status after a delay
+                setTimeout(() => {
+                    chatStatus.textContent = 'Message sent';
+                }, 1000);
+                
+                // Reset status after another delay
+                setTimeout(() => {
+                    chatStatus.textContent = 'Ready to chat';
+                }, 3000);
+            }
+        });
+
+        // Allow pressing Enter to send message
+        chatMessageInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendChatMessageBtn.click();
+            }
         });
 
         // Get initial values from main process

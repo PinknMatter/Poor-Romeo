@@ -13,8 +13,8 @@ Your name is {botName}, and you're having a conversation with someone you've jus
 
 Please respond as if you were having a conversation with someone you're interested in getting to know. Ask follow-up questions, share your own thoughts and experiences, and be open and honest in your responses.
 """
-# fineTunedModel = "ft:gpt-4o-2024-08-06:personal:all-lydia-dms:B8gGgc3j" 
-fineTunedModel = "ft:gpt-3.5-turbo-0125:personal:lyd-dm-message-test1:B8ciezBk"
+fineTunedModel = "ft:gpt-4o-2024-08-06:personal:all-lydia-dms:B8gGgc3j" 
+# fineTunedModel = "ft:gpt-3.5-turbo-0125:personal:lyd-dm-message-test1:B8ciezBk"
 
 
 client = OpenAI(

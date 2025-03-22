@@ -1,6 +1,17 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 
+// Load chatbot bridge
+let chatbotBridge;
+try {
+    chatbotBridge = require('./chatbotBridge');
+    
+    // The API key will be loaded from the .env file by the chatbot module
+    console.log('Using OpenAI API key from .env file for Assistant:', chatbotBridge.assistantId);
+} catch (error) {
+    console.error('Error loading chatbot bridge:', error);
+}
+
 // Enable live reload
 try {
     require('electron-reload')(__dirname, {
@@ -118,6 +129,46 @@ ipcMain.on('send-test-message', (event, message) => {
 
 ipcMain.on('refresh-bot-response', (event) => {
     mainWindow.webContents.send('refresh-bot-response');
+});
+
+// Add chatbot integration
+ipcMain.on('get-chatbot-response', async (event, message) => {
+    try {
+        console.log('Main process: Getting chatbot response for:', message);
+        
+        if (!chatbotBridge) {
+            console.error('Chatbot bridge not available');
+            event.reply('chatbot-response', "Chatbot is not available. Please check the console for errors.");
+            return;
+        }
+        
+        // Forward the user message to the main window for display
+        // We need this to ensure user messages are displayed in the UI
+        mainWindow.webContents.send('user-message-received', message);
+        
+        // Get response from the chatbot
+        const response = await chatbotBridge.getChatbotResponse(message);
+        console.log('Main process: Chatbot response received:', response.substring(0, 50) + (response.length > 50 ? '...' : ''));
+        
+        // Send the response back to the renderer process that requested it
+        event.reply('chatbot-response', response);
+        
+        // Also send the bot response to the main window
+        mainWindow.webContents.send('bot-response-received', response);
+    } catch (error) {
+        console.error('Error in get-chatbot-response handler:', error);
+        event.reply('chatbot-response', "Error: " + error.message);
+    }
+});
+
+// Add handler for direct bot responses
+ipcMain.on('bot-response-received', (event, response) => {
+    mainWindow.webContents.send('bot-response-received', response);
+});
+
+// Add handler for user messages
+ipcMain.on('send-test-message', (event, message) => {
+    mainWindow.webContents.send('send-test-message', message);
 });
 
 // Send initial values to control window when it's ready
