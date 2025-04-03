@@ -147,14 +147,25 @@
         </div>
 
         <div class="control-section">
-            <h3>Lydia Chatbot</h3>
+            <h3>Chatbot</h3>
             <div class="control-group">
-                <label for="chatMessage">Chat with Lydia</label>
+                <label for="agentSelector">Select Agent</label>
+                <select id="agentSelector">
+                    <option value="Noah Kornberg">Noah Kornberg</option>
+                    <option value="Lydia Graveline">Lydia Graveline</option>
+                </select>
+                <button id="switchAgent">Switch Agent</button>
+            </div>
+            <div class="control-group">
+                <label for="chatMessage">Chat with <span id="currentAgentName">Noah Kornberg</span></label>
                 <input type="text" id="chatMessage" placeholder="Type your message here...">
                 <button id="sendChatMessage">Send Message</button>
             </div>
             <div class="control-group">
                 <div id="chatStatus">Ready to chat</div>
+            </div>
+            <div class="control-group">
+                <button id="toggleChatbot" class="button">Hide Chatbot</button>
             </div>
         </div>
     </div>
@@ -193,6 +204,10 @@
         const chatMessageInput = document.getElementById('chatMessage');
         const sendChatMessageBtn = document.getElementById('sendChatMessage');
         const chatStatus = document.getElementById('chatStatus');
+        const toggleChatbotBtn = document.getElementById('toggleChatbot');
+        const agentSelector = document.getElementById('agentSelector');
+        const currentAgentName = document.getElementById('currentAgentName');
+        const switchAgentBtn = document.getElementById('switchAgent');
 
         // Text Size Event
         textSizeSlider.addEventListener('input', function() {
@@ -283,6 +298,43 @@
                 }, 3000);
             }
         });
+
+        // Chatbot toggle event
+        toggleChatbotBtn.addEventListener('click', function() {
+            const buttonText = this.textContent === 'Hide Chatbot' ? 'Show Chatbot' : 'Hide Chatbot';
+            this.textContent = buttonText;
+            sendToMain('toggle-chatbot', buttonText === 'Show Chatbot');
+        });
+
+        // Agent switch event
+        switchAgentBtn.addEventListener('click', function() {
+            const agentName = agentSelector.value;
+            currentAgentName.textContent = agentName;
+            chatStatus.textContent = `Switching to ${agentName}...`;
+            sendToMain('switch-agent', agentName);
+        });
+
+        // Listen for agent-switched event from main process
+        if (window.api) {
+            window.api.receive('agent-switched', function(agentName) {
+                currentAgentName.textContent = agentName;
+                chatStatus.textContent = `Switched to ${agentName}`;
+            });
+            
+            window.api.receive('switch-agent-response', function(response) {
+                chatStatus.textContent = response;
+            });
+        } else if (window.require) {
+            const ipcRenderer = window.require('electron').ipcRenderer;
+            ipcRenderer.on('agent-switched', function(event, agentName) {
+                currentAgentName.textContent = agentName;
+                chatStatus.textContent = `Switched to ${agentName}`;
+            });
+            
+            ipcRenderer.on('switch-agent-response', function(event, response) {
+                chatStatus.textContent = response;
+            });
+        }
 
         // Allow pressing Enter to send message
         chatMessageInput.addEventListener('keypress', function(e) {

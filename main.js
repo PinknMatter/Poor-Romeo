@@ -7,7 +7,8 @@ try {
     chatbotBridge = require('./chatbotBridge');
     
     // The API key will be loaded from the .env file by the chatbot module
-    console.log('Using OpenAI API key from .env file for Assistant:', chatbotBridge.assistantId);
+    const currentAgent = chatbotBridge.getCurrentAgent();
+    console.log('Using OpenAI API key from .env file for Assistant:', currentAgent.id);
 } catch (error) {
     console.error('Error loading chatbot bridge:', error);
 }
@@ -183,4 +184,49 @@ ipcMain.on('control-window-ready', () => {
         textBotSize: 18,
         backgroundOpacity: 100
     });
+});
+
+// Handle chatbot visibility toggle
+ipcMain.on('toggle-chatbot', (event, isHidden) => {
+    mainWindow.webContents.send('toggle-chatbot', isHidden);
+});
+
+// Handle switch agent
+ipcMain.on('switch-agent', async (event, agentName) => {
+    try {
+        if (!chatbotBridge) {
+            console.error('Chatbot bridge not available');
+            event.reply('switch-agent-response', "Chatbot is not available. Please check the console for errors.");
+            return;
+        }
+        
+        // Switch the agent
+        const success = await chatbotBridge.switchAgent(agentName);
+        
+        if (success) {
+            // Get the current agent
+            const currentAgent = chatbotBridge.getCurrentAgent();
+            console.log(`Switched to agent: ${currentAgent.name} (${currentAgent.id})`);
+            
+            // Notify the control window about the agent switch
+            controlWindow.webContents.send('agent-switched', currentAgent.name);
+            
+            // Send the agent name to the main window before reloading
+            mainWindow.webContents.send('set-current-agent', currentAgent.name);
+            
+            // Give a moment for the localStorage to be updated
+            setTimeout(() => {
+                // Reload the main window to refresh the sketch with the new agent data
+                mainWindow.reload();
+            }, 500);
+            
+            // Send the response back to the renderer process that requested it
+            event.reply('switch-agent-response', `Switched to ${currentAgent.name}`);
+        } else {
+            event.reply('switch-agent-response', `Failed to switch to agent: ${agentName}`);
+        }
+    } catch (error) {
+        console.error('Error in switch-agent handler:', error);
+        event.reply('switch-agent-response', "Error: " + error.message);
+    }
 });

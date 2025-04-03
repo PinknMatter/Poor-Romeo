@@ -18,7 +18,7 @@ Maintain the flow of conversation by referring to previous messages.
 Be open, friendly, and authentic in your responses.
 
 Remember that this is an ongoing conversation, so build upon what has been discussed previously.`;
-const model = "ft:gpt-4o-2024-08-06:personal:all-lydia-dms:B8gGgc3j";
+const model = "ft:gpt-4o-mini-2024-07-18:personal:lydia:BIMMc4iN";
 
 // Try to load API key from .env file
 let apiKey = '';
@@ -238,12 +238,34 @@ async function createVectorStore(name, fileIds) {
   while (!isComplete && attempts < maxAttempts) {
     await new Promise(resolve => setTimeout(resolve, 10000)); // Wait 10 seconds
     
-    const status = await makeApiRequest('GET', `/v1/vector_stores/${vectorStore.id}`);
-    console.log(`File ingestion status: ${status.file_counts.processed}/${status.file_counts.total} files processed`);
-    
-    if (status.file_counts.processed === status.file_counts.total) {
-      isComplete = true;
-      console.log('File ingestion complete!');
+    try {
+      const status = await makeApiRequest('GET', `/v1/vector_stores/${vectorStore.id}`);
+      
+      // Log the full status object for debugging
+      console.log('File ingestion status response:', JSON.stringify(status, null, 2));
+      
+      // Check if file_counts exists and has the expected properties
+      if (status.file_counts && 
+          typeof status.file_counts.processed === 'number' && 
+          typeof status.file_counts.total === 'number') {
+        console.log(`File ingestion status: ${status.file_counts.processed}/${status.file_counts.total} files processed`);
+        
+        if (status.file_counts.processed === status.file_counts.total) {
+          isComplete = true;
+          console.log('File ingestion complete!');
+        }
+      } else {
+        // If file_counts structure is different, try to extract information from other properties
+        console.log(`File ingestion status: Processing files (attempt ${attempts + 1}/${maxAttempts})`);
+        
+        // Check if status indicates completion in some other way
+        if (status.status === 'completed' || status.status === 'ready') {
+          isComplete = true;
+          console.log('File ingestion complete based on status field!');
+        }
+      }
+    } catch (error) {
+      console.error('Error checking file ingestion status:', error.message);
     }
     
     attempts++;
@@ -286,8 +308,8 @@ async function main() {
     console.log('Creating a new assistant with file search capability using vector stores...');
     
     // File paths
-    const filePath1 = path.join(__dirname, '..', 'formatted_finetuning_data.jsonl');
-    const filePath2 = path.join(__dirname, '..', 'Clean_data', 'Lydia_hinge_data.json');
+    const filePath1 = path.join(__dirname, 'Lydia_Data', 'RAG', 'prompts.json');
+    const filePath2 = path.join(__dirname, 'Lydia_Data', 'RAG', 'user.json');
     
     // Check if files exist
     if (!fs.existsSync(filePath1)) {

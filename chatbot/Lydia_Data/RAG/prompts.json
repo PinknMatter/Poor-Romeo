@@ -1,0 +1,116 @@
+[
+    {
+        "id": 1,
+        "prompt": "My mantra is",
+        "type": "text",
+        "text": "keep cool but care \ua9c2",
+        "user_updated": "2024-05-19 03:11:59.390587",
+        "created": "2022-06-08 04:34:57.467248"
+    },
+    {
+        "id": 2,
+        "prompt": "This year, I really want to",
+        "type": "text",
+        "text": "meet people \ud83e\udde0",
+        "user_updated": "2024-05-19 03:14:50.359956",
+        "created": "2022-06-08 04:34:57.467248"
+    },
+    {
+        "id": 3,
+        "prompt": "My mantra is",
+        "type": "text",
+        "text": "keep cool but care",
+        "user_updated": "2024-05-23 02:40:29.257077",
+        "created": "2024-05-19 03:11:59.390587"
+    },
+    {
+        "id": 4,
+        "prompt": "A life goal of mine",
+        "type": "text",
+        "text": "grow out my bangs",
+        "user_updated": "2024-06-01 00:54:05.479794",
+        "created": "2022-06-08 04:34:57.467248"
+    },
+    {
+        "id": 5,
+        "prompt": "I'm weirdly attracted to",
+        "type": "text",
+        "text": "conner o'malley",
+        "user_updated": "2024-06-13 21:38:26.396833",
+        "created": "2024-05-23 02:40:29.257077"
+    },
+    {
+        "id": 6,
+        "prompt": "The way to win me over is",
+        "type": "text",
+        "text": "flowers",
+        "user_updated": "2025-03-05 03:50:11.337565",
+        "created": "2024-05-19 03:14:50.359956"
+    },
+    {
+        "id": 7,
+        "prompt": "I go crazy for",
+        "type": "text",
+        "text": "Milk steak",
+        "user_updated": "2025-03-05 03:47:33.97261",
+        "created": "2024-06-01 00:54:05.479794"
+    },
+    {
+        "id": 8,
+        "prompt": "Together, we could",
+        "type": "text",
+        "text": "Flip rocks",
+        "user_updated": "2025-03-05 03:50:11.337565",
+        "created": "2024-06-13 21:38:26.396833"
+    },
+    {
+        "id": 9,
+        "prompt": "The way to win me over is",
+        "type": "text",
+        "text": "flowers duh",
+        "user_updated": "2025-03-05 03:50:11.337565",
+        "created": "2025-03-05 03:50:11.337565"
+    },
+    {
+        "id": 10,
+        "prompt": "Together, we could",
+        "type": "text",
+        "text": "Flip rocks find bugs",
+        "user_updated": "2025-03-05 04:01:25.220865",
+        "created": "2025-03-05 03:50:11.337565"
+    },
+    {
+        "id": 11,
+        "prompt": "Together, we could",
+        "type": "text",
+        "text": "Flip rocks and find bugs",
+        "user_updated": "2025-03-06 04:59:29.745548",
+        "created": "2025-03-05 04:01:25.220865"
+    },
+    {
+        "id": 12,
+        "prompt": "Together, we could",
+        "type": "text",
+        "text": "Flip rocks",
+        "user_updated": "2025-03-06 04:59:29.745548",
+        "created": "2025-03-06 04:59:29.745548"
+    },
+    {
+        "id": 13,
+        "prompt": "I\u2019m a 10 but",
+        "type": "video_prompt",
+        "media_url": "https://media.hingenexus.com/video/upload/f_mp4,w_720,c_limit/v1716088312/1ff3eu78rezgr6gz1mnx.mp4",
+        "length_seconds": 7,
+        "user_updated": "2024-05-20 19:00:14.663744",
+        "created": "2024-05-19 03:11:59.601411"
+    },
+    {
+        "id": 14,
+        "prompt": "I\u2019m a 10 but",
+        "type": "video_prompt",
+        "media_url": "https://media.hingenexus.com/video/upload/f_mp4,w_720,c_limit/v1717201447/5tqifpw4xgyhium51iag.mp4",
+        "length_seconds": 7,
+        "user_updated": "2024-06-02 23:11:52.608722",
+        "created": "2024-06-01 00:24:14.201675"
+    }
+]

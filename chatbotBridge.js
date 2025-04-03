@@ -30,15 +30,36 @@ try {
  * @returns {Promise<string>} - The chatbot's response
  */
 async function getChatbotResponse(userInput) {
+  console.log('Getting response from Assistant for:', userInput);
   try {
-    console.log('Getting response from Assistant for:', userInput);
-    const response = await chatbot.getAiResponse(userInput);
-    console.log('Response received from Assistant:', response.substring(0, 50) + (response.length > 50 ? '...' : ''));
-    return response;
+    return await chatbot.getAiResponse(userInput);
   } catch (error) {
     console.error('Error getting chatbot response:', error);
-    return "I'm having trouble connecting right now. Please try again in a moment.";
+    return `Error: ${error.message}`;
   }
+}
+
+/**
+ * Switch to a different agent
+ * @param {string} agentName - The name of the agent to switch to
+ * @returns {boolean} - Whether the switch was successful
+ */
+function switchAgent(agentName) {
+  console.log('Switching to agent:', agentName);
+  try {
+    return chatbot.switchAgent(agentName);
+  } catch (error) {
+    console.error('Error switching agent:', error);
+    return false;
+  }
+}
+
+/**
+ * Get the current agent information
+ * @returns {object} - The current agent information
+ */
+function getCurrentAgent() {
+  return chatbot.getCurrentAgent();
 }
 
 /**
@@ -49,10 +70,10 @@ function setApiKey(key) {
   chatbot.setApiKey(key);
 }
 
-// Export functions
+// Export the functions and properties
 module.exports = {
   getChatbotResponse,
-  setApiKey,
-  botName: chatbot.botName,
-  assistantId: chatbot.assistantId
+  switchAgent,
+  getCurrentAgent,
+  setApiKey
 };

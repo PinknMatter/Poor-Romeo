@@ -43,9 +43,12 @@ class TextBot {
         this.typingDelayStartTime = 0;  // When the delay started
         this.waitingForBotResponse = false; // Flag to track if we're waiting for bot response
         
+        // Visibility property
+        this.isVisible = true;        // Flag to track if chatbot container is visible
+        
         // Add initial messages without animation
         this.messages.push({
-            text: "Hello! How can I help you today?",
+            text: "Heyy",
             isBot: true,
             timestamp: null
         });
@@ -62,6 +65,11 @@ class TextBot {
             // Listen for direct user messages
             ipcRenderer.on('user-message-received', (event, message) => {
                 this.addUserMessage(message);
+            });
+            
+            // Listen for toggle chatbot visibility
+            ipcRenderer.on('toggle-chatbot', (event, isHidden) => {
+                this.isVisible = !isHidden;
             });
         } catch (error) {
             console.error('Error setting up IPC listeners:', error);
@@ -192,6 +200,9 @@ class TextBot {
     
     // Draw the text bot
     draw() {
+        // Skip drawing if not visible
+        if (!this.isVisible) return;
+        
         // This method now delegates to drawMessages with default parameters
         // for backward compatibility
         const chatWidth = width * 0.6;

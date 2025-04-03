@@ -17,11 +17,37 @@ function preload() {
     const path = require('path');
     
     try {
-        const jsonPath = path.join(__dirname,'Clean_data', "Lydia_hinge_data.json");
+        // Load agents data
+        const agentsPath = path.join(__dirname, 'chatbot', 'Agents.json');
+        const agentsData = JSON.parse(fs.readFileSync(agentsPath, 'utf8'));
+        const agents = agentsData.agents;
+        
+        // Get the current agent from localStorage or default to the first agent
+        let currentAgentName = localStorage.getItem('currentAgent') || agents[0].name;
+        
+        // Find the agent object
+        const currentAgent = agents.find(agent => agent.name === currentAgentName) || agents[0];
+        console.log('Current agent:', currentAgent.name);
+        
+        // Determine which data file to load based on the agent
+        let dataFileName;
+        if (currentAgent.name === "Noah Kornberg") {
+            dataFileName = "Noah_hinge_data.json";
+        } else if (currentAgent.name === "Lydia Graveline") {
+            dataFileName = "Lydia_hinge_data.json";
+        } else {
+            dataFileName = "Noah_hinge_data.json"; // Default fallback
+        }
+        
+        const jsonPath = path.join(__dirname, 'Clean_data', dataFileName);
         const data = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
         messageManager = new MessageManager();
         messageManager.loadMessages(data);
         console.log('Total messages:', messageManager.getMessageCount());
+        console.log('Loaded data for agent:', currentAgent.name);
+        
+        // Store the current agent name in localStorage for persistence
+        localStorage.setItem('currentAgent', currentAgent.name);
     } catch (error) {
         console.error('Error loading JSON:', error);
     }

@@ -1,6 +1,12 @@
 // Preload script for Electron
 const { contextBridge, ipcRenderer } = require('electron');
 
+// Listen for set-current-agent message and store in localStorage
+ipcRenderer.on('set-current-agent', (event, agentName) => {
+    console.log('Setting current agent in localStorage:', agentName);
+    localStorage.setItem('currentAgent', agentName);
+});
+
 // Expose protected methods that allow the renderer process to use
 // the ipcRenderer without exposing the entire object
 contextBridge.exposeInMainWorld(
@@ -14,7 +20,10 @@ contextBridge.exposeInMainWorld(
                 'send-test-message',
                 'refresh-bot-response',
                 'update-text-bot-size',
-                'randomize-positions'
+                'randomize-positions',
+                'get-chatbot-response',
+                'toggle-chatbot',
+                'switch-agent'
             ];
             if (validChannels.includes(channel)) {
                 ipcRenderer.send(channel, data);
@@ -28,7 +37,12 @@ contextBridge.exposeInMainWorld(
                 'send-test-message',
                 'refresh-bot-response',
                 'update-text-bot-size',
-                'randomize-positions'
+                'randomize-positions',
+                'chatbot-response',
+                'toggle-chatbot',
+                'agent-switched',
+                'switch-agent-response',
+                'set-current-agent'
             ];
             if (validChannels.includes(channel)) {
                 // Deliberately strip event as it includes `sender` 

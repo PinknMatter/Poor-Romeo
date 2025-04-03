@@ -11,11 +11,24 @@ try {
   console.error('Error loading .env file:', error);
 }
 
+// Load agents from JSON file
+let agents = [];
+try {
+  const agentsPath = path.join(__dirname, 'Agents.json');
+  const agentsData = JSON.parse(fs.readFileSync(agentsPath, 'utf8'));
+  agents = agentsData.agents;
+  console.log(`Loaded ${agents.length} agents from Agents.json`);
+} catch (error) {
+  console.error('Error loading agents:', error);
+}
+
 // Global variables
 let apiKey = process.env.OPENAI_API_KEY;
 let threadId = null;
-const assistantId = 'asst_9cehobPHuP3L5yaLwbi02j8u';
-const botName = 'Lydia Graveline';
+let currentAgent = agents.find(agent => agent.name === 'Noah Kornberg') || {
+  id: 'asst_OrE6NxCZmMWFAUfFdgjjYagB',
+  name: 'Noah Kornberg'
+};
 
 /**
  * Set the API key
@@ -24,6 +37,32 @@ const botName = 'Lydia Graveline';
 function setApiKey(key) {
   apiKey = key;
   console.log('API key set successfully');
+}
+
+/**
+ * Switch to a different agent
+ * @param {string} agentName - The name of the agent to switch to
+ * @returns {boolean} - Whether the switch was successful
+ */
+function switchAgent(agentName) {
+  const agent = agents.find(a => a.name === agentName);
+  if (agent) {
+    currentAgent = agent;
+    console.log(`Switched to agent: ${agent.name} (${agent.id})`);
+    // Reset thread ID to start a new conversation with the new agent
+    threadId = null;
+    return true;
+  }
+  console.error(`Agent not found: ${agentName}`);
+  return false;
+}
+
+/**
+ * Get the current agent information
+ * @returns {object} - The current agent
+ */
+function getCurrentAgent() {
+  return currentAgent;
 }
 
 /**
@@ -181,10 +220,11 @@ async function createRun(threadId) {
     try {
       // Prepare request data with enhanced instructions
       const data = JSON.stringify({
-        assistant_id: assistantId,
-        instructions: `You are ${botName}, having a conversation with someone you've just met. 
-        Remember to be conversational, engaging, and show personality. 
-        Ask follow-up questions, share thoughts and experiences, and maintain the flow of conversation.
+        assistant_id: currentAgent.id,
+        instructions: `You are ${currentAgent.name}, having a flirtatious conversation with someone you've just met on a dating app. 
+        Your end goal is to convince the person to go on a date with you. 
+        Remember to be conversational, engaging, seductive, and show personality. 
+        Ask questions, share thoughts and experiences, and maintain the flow of conversation.
         Always respond with complete, thoughtful answers 
         This is an ongoing conversation, so refer to previous messages when appropriate.`
       });
@@ -428,7 +468,7 @@ async function getAiResponse(userInput) {
     // Create a thread if one doesn't exist
     if (!threadId) {
       threadId = await createThread();
-      console.log('Using OpenAI API key from .env file for Assistant:', assistantId);
+      console.log('Using OpenAI API key from .env file for Assistant:', currentAgent.name);
       
       // Add an initial system message to set the tone
       await addMessage(threadId, "Remember to be conversational and engaging. Always provide thoughtful, multi-sentence responses.");
@@ -473,6 +513,6 @@ async function getAiResponse(userInput) {
 module.exports = {
   getAiResponse,
   setApiKey,
-  botName,
-  assistantId
+  switchAgent,
+  getCurrentAgent
 };
