@@ -6,7 +6,7 @@ const fs = require('fs');
 const { ElevenLabsClient, play } = require("elevenlabs");
 
 const voiceIds = {
-  'Noah Kornberg': 'JBFqnCBsd6RMkjVDRZzb',
+  'Noah Kornberg': '1ddbnEg7paPbaaAXwRhU',
   'Lydia Graveline': 'R3EDLzLRtYcjlNh3Fe2a'
 };
 // elevenLab speech model
