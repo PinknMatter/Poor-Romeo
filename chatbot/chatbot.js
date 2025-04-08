@@ -537,8 +537,7 @@ async function getAiResponse(userInput) {
 
           // Play the audio
           await play(audio);
-
-         
+          
           return textContent.text.value;
 
         }
