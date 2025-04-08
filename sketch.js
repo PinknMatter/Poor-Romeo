@@ -4,6 +4,8 @@ let fpsCounter = 0;
 let lastFpsUpdate = 0;
 let currentFps = 0;
 
+let bgColor = 0;
+
 // UI Controls
 // let textSizeSlider;
 // let textSizeValue;
@@ -33,8 +35,10 @@ function preload() {
         let dataFileName;
         if (currentAgent.name === "Noah Kornberg") {
             dataFileName = "Noah_hinge_data.json";
+            bgColor = '#000000'
         } else if (currentAgent.name === "Lydia Graveline") {
             dataFileName = "Lydia_hinge_data.json";
+            bgColor = '#d11b76'
         } else {
             dataFileName = "Noah_hinge_data.json"; // Default fallback
         }
@@ -77,7 +81,7 @@ function draw() {
     
     // Clear the background each frame
     clear();
-    background(0);
+    background(bgColor);
     
     // Show loading message if data isn't ready
     if (!messageManager || !messageManager.isLoaded) {
