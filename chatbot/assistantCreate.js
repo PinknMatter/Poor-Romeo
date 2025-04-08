@@ -18,7 +18,7 @@ Maintain the flow of conversation by referring to previous messages.
 Be open, friendly, and authentic in your responses.
 
 Remember that this is an ongoing conversation, so build upon what has been discussed previously.`;
-const model = "ft:gpt-4o-mini-2024-07-18:personal:lydia:BIMMc4iN";
+const model = "ft:gpt-4o-mini-2024-07-18:personal:lydia2:BJOl82jP";
 
 // Try to load API key from .env file
 let apiKey = '';
@@ -309,7 +309,7 @@ async function main() {
     
     // File paths
     const filePath1 = path.join(__dirname, 'Lydia_Data', 'RAG', 'prompts.json');
-    const filePath2 = path.join(__dirname, 'Lydia_Data', 'RAG', 'user.json');
+    const filePath2 = path.join(__dirname, 'Lydia_Data', 'RAG', 'user.txt');
     
     // Check if files exist
     if (!fs.existsSync(filePath1)) {

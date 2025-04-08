@@ -9,10 +9,10 @@
     },
     {
       "name": "Lydia Graveline",
-      "id": "asst_ilL51ABMj9SpMtMdrwiro4jb",
-      "model": "ft:gpt-4o-mini-2024-07-18:personal:lydia:BIMMc4iN",
+      "id": "asst_4DfENDBMCxcQEUicjWDsyZc2",
+      "model": "ft:gpt-4o-mini-2024-07-18:personal:lydia2:BJOl82jP",
       "tools": ["file_search"],
-      "vectorStoreId": "vs_67ef01eb47388191b00d426c6f2cd898"
+      "vectorStoreId": "vs_67f5703718cc819185c78e420b8b4f35"
     }
   ]
 }
