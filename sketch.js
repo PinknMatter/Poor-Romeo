@@ -101,7 +101,7 @@ function draw() {
     const chatY = height * 0.4;
     
     // Draw the text bot with the calculated dimensions
-    textBot.drawMessages(chatX, chatY, chatWidth, chatHeight);
+    textBot.draw();
     
     // Display performance stats
     // fill(255);
