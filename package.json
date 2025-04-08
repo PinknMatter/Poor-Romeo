@@ -11,6 +11,8 @@
     "dotenv": "^16.4.5",
     "electron": "^28.3.3",
     "electron-reload": "^2.0.0-alpha.1",
+    "elevenlabs": "^1.56.0",
+    "elevenlabs-client": "^0.0.18",
     "openai": "^4.28.0"
   }
 }

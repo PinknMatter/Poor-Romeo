@@ -3,6 +3,14 @@ const https = require('https');
 const dotenv = require('dotenv');
 const path = require('path');
 const fs = require('fs');
+const { ElevenLabsClient, play } = require("elevenlabs");
+
+const voiceIds = {
+  'Noah Kornberg': 'JBFqnCBsd6RMkjVDRZzb',
+  'Lydia Graveline': 'R3EDLzLRtYcjlNh3Fe2a'
+};
+// elevenLab speech model
+const MODEL_ID = "eleven_flash_v2_5";
 
 // Try to load environment variables from .env file
 try {
@@ -24,11 +32,15 @@ try {
 
 // Global variables
 let apiKey = process.env.OPENAI_API_KEY;
+let elevenLabsApiKey = process.env.ELEVENLABS_API_KEY;
 let threadId = null;
 let currentAgent = agents.find(agent => agent.name === 'Noah Kornberg') || {
   id: 'asst_OrE6NxCZmMWFAUfFdgjjYagB',
   name: 'Noah Kornberg'
 };
+let voiceId = voiceIds[currentAgent.name];
+
+const client = new ElevenLabsClient({ apiKey: elevenLabsApiKey });
 
 /**
  * Set the API key
@@ -48,6 +60,7 @@ function switchAgent(agentName) {
   const agent = agents.find(a => a.name === agentName);
   if (agent) {
     currentAgent = agent;
+    voiceId = voiceIds[agentName]; // Update the voice ID
     console.log(`Switched to agent: ${agent.name} (${agent.id})`);
     // Reset thread ID to start a new conversation with the new agent
     threadId = null;
@@ -390,6 +403,27 @@ async function waitForRunCompletion(threadId, runId) {
 }
 
 /**
+ * Convert text to speech using ElevenLabs API
+ * @param {string} text - The text to convert
+ * @returns {Promise<string>} - The audio URL
+ */
+function textToSpeech(text) {
+  console.log("Text to speech = "+ text);
+  return new Promise((resolve, reject) => {
+    try {
+      const audio = client.textToSpeech.convert(voiceId, {
+        text: text,
+        model_id: MODEL_ID,
+        output_format: "mp3_44100_128",
+      });
+      resolve(audio);
+    } catch (error) {
+      console.error('Error in textToSpeech:', error);
+      reject(error);
+    }
+  });
+}
+/**
  * Get messages from a thread
  * @param {string} threadId - The thread ID
  * @returns {Promise<Array>} - The messages
@@ -497,7 +531,16 @@ async function getAiResponse(userInput) {
         const textContent = latestMessage.content.find(content => content.type === 'text');
         if (textContent && textContent.text) {
           console.log('Chatbot response received:', textContent.text.value);
+         
+           // Convert the response to speech
+          const audio = await textToSpeech(textContent.text.value);
+
+          // Play the audio
+          await play(audio);
+
+         
           return textContent.text.value;
+
         }
       }
     }
@@ -515,4 +558,5 @@ module.exports = {
   setApiKey,
   switchAgent,
   getCurrentAgent
+  // textToSpeech
 };
