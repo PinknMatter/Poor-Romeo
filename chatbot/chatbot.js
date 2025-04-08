@@ -532,15 +532,16 @@ async function getAiResponse(userInput) {
         if (textContent && textContent.text) {
           console.log('Chatbot response received:', textContent.text.value);
          
-           // Convert the response to speech
+          // Convert the response to speech but don't play it yet
           const audio = await textToSpeech(textContent.text.value);
-
-          // Play the audio
-          await play(audio);
-
-         
+          
+          // Store the audio for later playback
+          setTimeout(() => {
+            // Play the audio after a short delay to allow the UI to update
+            play(audio);
+          }, 300); // 300ms delay to ensure UI has time to display the message
+          
           return textContent.text.value;
-
         }
       }
     }

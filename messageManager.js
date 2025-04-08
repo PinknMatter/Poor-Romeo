@@ -103,7 +103,9 @@ class MessageManager {
             const y = random(fontSize + margin, height - fontSize - margin);
             
             if (!this.checkOverlap(x, y, messageWidth)) {
-                const message = new TextMessage(messageData.message, x, y);
+                // Use the current agent from localStorage
+                const currentAgentName = localStorage.getItem('currentAgent') || 'Noah Kornberg';
+                const message = new TextMessage(messageData.message, x, y, currentAgentName);
                 this.displayMessages.push(message);
                 return true;
             }

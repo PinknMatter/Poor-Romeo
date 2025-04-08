@@ -1,8 +1,9 @@
 class TextMessage {
-    constructor(message, x, y) {
+    constructor(message, x, y, agent) {
         this.message = message;
         this.x = x;
         this.y = y;
+        this.agent = agent || 'Noah Kornberg'; // Default to Noah if no agent specified
         this.birth = millis();
         this.lifetime = window.messageLifetime || random(8000, 12000);
         this.isVisible = true;
@@ -141,7 +142,12 @@ class TextMessage {
 
             // Check if this word is highlighted
             if (this.highlightedWords.has(i)) {
-                fill(36, 46, 173);
+                // Set highlight color based on agent
+                if (this.agent === 'Lydia Graveline') {
+                    fill(255, 105, 180); // Hot pink for Lydia
+                } else {
+                    fill(36, 46, 173); // Blue for Noah (default)
+                }
                 rect(currentX, this.y - fontSize/2 - 3, wordWidth, fontSize + 3);
                 fill(255);
             }
