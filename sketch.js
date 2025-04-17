@@ -38,7 +38,8 @@ function preload() {
             bgColor = '#000000'
         } else if (currentAgent.name === "Lydia Graveline") {
             dataFileName = "Lydia_hinge_data.json";
-            bgColor = '#d11b76'
+            // bgColor = '#d46cb1'
+            bgColor = '#000000'
         } else {
             dataFileName = "Noah_hinge_data.json"; // Default fallback
         }
